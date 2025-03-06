@@ -1,15 +1,130 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Container } from "@/components/ui/container";
 import { SearchBar } from "@/components/SearchBar";
 import { FilterBar } from "@/components/FilterBar";
 import { ServerCard, ServerData } from "@/components/ServerCard";
-import { filterCategories, mockServers } from "@/lib/mockData";
+import { filterCategories } from "@/lib/mockData";
+import { supabase } from "@/integrations/supabase/client";
+import { fetchMcpServers } from "@/lib/fetchMcpServers";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
+  const [servers, setServers] = useState<ServerData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  
+  // Load servers from database
+  useEffect(() => {
+    const loadServers = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('mock_servers')
+          .select('*');
+        
+        if (error) {
+          console.error('Error loading servers:', error);
+          toast({
+            title: "Error loading servers",
+            description: error.message,
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        // Transform database results to match ServerData type
+        const transformedData: ServerData[] = data.map(item => ({
+          id: item.id,
+          name: item.name,
+          description: item.description || "",
+          stars: item.stars || 0,
+          forks: item.forks || 0,
+          language: item.language || "",
+          tags: item.tags || [],
+          owner: item.owner || "",
+          lastUpdated: formatDateToRelative(item.last_updated),
+          category: item.category || "",
+          implementation: item.implementation as "official" | "community",
+          deploymentType: item.deployment_type as "cloud" | "local" | "both",
+          os: item.os as ("macos" | "windows" | "linux")[],
+          repoUrl: item.repo_url || "",
+          status: item.status as "stable" | "experimental",
+          categories: item.categories || [],
+          programmingLanguage: item.programming_language as any || "other",
+        }));
+        
+        setServers(transformedData);
+      } catch (err) {
+        console.error('Unexpected error loading servers:', err);
+        toast({
+          title: "Error loading servers",
+          description: "Failed to load server data",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadServers();
+  }, [toast]);
+  
+  // Function to manually trigger server data fetch
+  const handleRefreshServers = async () => {
+    toast({
+      title: "Refreshing servers",
+      description: "Fetching the latest data from GitHub...",
+    });
+    
+    const result = await fetchMcpServers();
+    
+    if (result.success) {
+      toast({
+        title: "Servers refreshed",
+        description: "The latest data has been fetched from GitHub",
+      });
+      
+      // Reload the server data
+      const { data, error } = await supabase
+        .from('mock_servers')
+        .select('*');
+      
+      if (!error && data) {
+        // Transform database results to match ServerData type
+        const transformedData: ServerData[] = data.map(item => ({
+          id: item.id,
+          name: item.name,
+          description: item.description || "",
+          stars: item.stars || 0,
+          forks: item.forks || 0,
+          language: item.language || "",
+          tags: item.tags || [],
+          owner: item.owner || "",
+          lastUpdated: formatDateToRelative(item.last_updated),
+          category: item.category || "",
+          implementation: item.implementation as "official" | "community",
+          deploymentType: item.deployment_type as "cloud" | "local" | "both",
+          os: item.os as ("macos" | "windows" | "linux")[],
+          repoUrl: item.repo_url || "",
+          status: item.status as "stable" | "experimental",
+          categories: item.categories || [],
+          programmingLanguage: item.programming_language as any || "other",
+        }));
+        
+        setServers(transformedData);
+      }
+    } else {
+      toast({
+        title: "Error refreshing servers",
+        description: result.error?.message || "Failed to fetch server data",
+        variant: "destructive"
+      });
+    }
+  };
   
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -19,7 +134,21 @@ const Index = () => {
     setActiveFilters(filters);
   };
   
-  const filteredServers = mockServers.filter(server => {
+  // Helper function to format dates
+  const formatDateToRelative = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffInDays === 0) return "today";
+    if (diffInDays === 1) return "yesterday";
+    if (diffInDays < 7) return `${diffInDays} days ago`;
+    if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} weeks ago`;
+    if (diffInDays < 365) return `${Math.floor(diffInDays / 30)} months ago`;
+    return `${Math.floor(diffInDays / 365)} years ago`;
+  };
+  
+  const filteredServers = servers.filter(server => {
     // Search filter
     if (searchQuery && !server.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
         !server.description.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -78,7 +207,7 @@ const Index = () => {
       }
       
       if (category === "Category") {
-        if (!selectedOptions.some(option => server.categories.includes(option))) return false;
+        if (!selectedOptions.some(option => server.categories.includes(option.toLowerCase()))) return false;
       }
       
       if (category === "Operating System") {
@@ -116,12 +245,18 @@ const Index = () => {
       <div className="mt-20 pt-12 pb-16 flex flex-col items-center justify-center bg-gradient-to-b from-secondary/50 to-background border-b border-border">
         <div className="text-center mb-10 max-w-3xl mx-auto px-4">
           <div className="inline-block mb-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
-            100+ MCP Servers
+            {servers.length}+ MCP Servers
           </div>
           <h1 className="text-4xl sm:text-5xl font-mono font-semibold mb-4">MCP Server Directory</h1>
           <p className="text-lg text-muted-foreground">
             Find, compare and deploy MCP servers for your AI infrastructure
           </p>
+          <button 
+            onClick={handleRefreshServers}
+            className="mt-4 inline-flex items-center px-4 py-2 rounded-md bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium transition-colors"
+          >
+            Refresh GitHub Data
+          </button>
         </div>
         
         <SearchBar onSearch={handleSearch} />
@@ -131,7 +266,12 @@ const Index = () => {
         <FilterBar categories={filterCategories} onFilter={handleFilter} />
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-          {filteredServers.length > 0 ? (
+          {loading ? (
+            // Loading state
+            Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="h-[320px] rounded-xl bg-secondary/30 animate-pulse"></div>
+            ))
+          ) : filteredServers.length > 0 ? (
             filteredServers.map(server => (
               <div key={server.id} className="animate-slide-in">
                 <ServerCard server={server} />

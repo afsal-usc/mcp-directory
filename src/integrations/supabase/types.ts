@@ -9,7 +9,63 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      mcp_servers: {
+        Row: {
+          categories: string[] | null
+          created_at: string | null
+          deployment_type: string | null
+          description: string | null
+          forks: number | null
+          id: string
+          is_official: boolean | null
+          language: string | null
+          last_updated: string | null
+          name: string
+          os: string[] | null
+          readme: string | null
+          repo_full_name: string
+          stars: number | null
+          status: string | null
+          topics: string[] | null
+        }
+        Insert: {
+          categories?: string[] | null
+          created_at?: string | null
+          deployment_type?: string | null
+          description?: string | null
+          forks?: number | null
+          id?: string
+          is_official?: boolean | null
+          language?: string | null
+          last_updated?: string | null
+          name: string
+          os?: string[] | null
+          readme?: string | null
+          repo_full_name: string
+          stars?: number | null
+          status?: string | null
+          topics?: string[] | null
+        }
+        Update: {
+          categories?: string[] | null
+          created_at?: string | null
+          deployment_type?: string | null
+          description?: string | null
+          forks?: number | null
+          id?: string
+          is_official?: boolean | null
+          language?: string | null
+          last_updated?: string | null
+          name?: string
+          os?: string[] | null
+          readme?: string | null
+          repo_full_name?: string
+          stars?: number | null
+          status?: string | null
+          topics?: string[] | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
