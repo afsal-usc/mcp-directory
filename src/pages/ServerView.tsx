@@ -5,7 +5,8 @@ import { Navbar } from "@/components/Navbar";
 import { Container } from "@/components/ui/container";
 import { ServerDetail } from "@/components/ServerDetail";
 import { ServerData } from "@/components/ServerCard";
-import { mockServers } from "@/lib/mockData";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const ServerView = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,14 +14,68 @@ const ServerView = () => {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    // Simulate API fetch with a small delay
-    const timer = setTimeout(() => {
-      const foundServer = mockServers.find(s => s.id === id) || null;
-      setServer(foundServer);
-      setLoading(false);
-    }, 300);
+    const fetchServerData = async () => {
+      try {
+        setLoading(true);
+        
+        const { data, error } = await supabase
+          .from('mock_servers')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Error fetching server data:', error);
+          toast.error("Failed to load server data", {
+            description: error.message
+          });
+          setLoading(false);
+          return;
+        }
+        
+        if (!data) {
+          console.log('Server not found with ID:', id);
+          setServer(null);
+          setLoading(false);
+          return;
+        }
+        
+        // Map Supabase data to ServerData format
+        const serverData: ServerData = {
+          id: data.id,
+          name: data.name,
+          description: data.description || "",
+          stars: data.stars || 0,
+          forks: data.forks || 0,
+          language: data.language || "JavaScript",
+          tags: data.tags || [],
+          owner: data.owner || "Unknown",
+          lastUpdated: data.last_updated ? new Date(data.last_updated).toLocaleDateString() : "Unknown",
+          category: data.category || "general",
+          implementation: data.implementation as "official" | "community" || "community",
+          deploymentType: data.deployment_type as "cloud" | "local" | "both" || "both",
+          os: data.os as ("macos" | "windows" | "linux")[] || [],
+          repoUrl: data.repo_url || `https://github.com/${data.owner}/${data.name}`,
+          status: data.status as "stable" | "experimental" || "stable",
+          categories: data.categories || [data.category || "general"],
+          programmingLanguage: data.programming_language as ServerData["programmingLanguage"] || "typescript",
+        };
+        
+        console.log('Fetched server data:', serverData);
+        setServer(serverData);
+      } catch (err) {
+        console.error('Unexpected error fetching server:', err);
+        toast.error("Failed to load server data", {
+          description: "An unexpected error occurred"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    return () => clearTimeout(timer);
+    if (id) {
+      fetchServerData();
+    }
   }, [id]);
 
   return (
