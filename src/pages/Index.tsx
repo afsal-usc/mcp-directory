@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Container } from "@/components/ui/container";
@@ -8,14 +7,14 @@ import { ServerCard, ServerData } from "@/components/ServerCard";
 import { filterCategories } from "@/lib/mockData";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMcpServers } from "@/lib/fetchMcpServers";
-import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "sonner";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
   const [servers, setServers] = useState<ServerData[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const [refreshing, setRefreshing] = useState(false);
   
   // Load servers from database
   useEffect(() => {
@@ -28,11 +27,6 @@ const Index = () => {
         
         if (error) {
           console.error('Error loading servers:', error);
-          toast({
-            title: "Error loading servers",
-            description: error.message,
-            variant: "destructive"
-          });
           return;
         }
         
@@ -60,33 +54,20 @@ const Index = () => {
         setServers(transformedData);
       } catch (err) {
         console.error('Unexpected error loading servers:', err);
-        toast({
-          title: "Error loading servers",
-          description: "Failed to load server data",
-          variant: "destructive"
-        });
       } finally {
         setLoading(false);
       }
     };
     
     loadServers();
-  }, [toast]);
+  }, []);
   
   // Function to manually trigger server data fetch
   const handleRefreshServers = async () => {
-    toast({
-      title: "Refreshing servers",
-      description: "Fetching the latest data from GitHub...",
-    });
+    setRefreshing(true);
     
-    const result = await fetchMcpServers();
-    
-    if (result.success) {
-      toast({
-        title: "Servers refreshed",
-        description: "The latest data has been fetched from GitHub",
-      });
+    try {
+      await fetchMcpServers();
       
       // Reload the server data
       const { data, error } = await supabase
@@ -117,12 +98,8 @@ const Index = () => {
         
         setServers(transformedData);
       }
-    } else {
-      toast({
-        title: "Error refreshing servers",
-        description: result.error?.message || "Failed to fetch server data",
-        variant: "destructive"
-      });
+    } finally {
+      setRefreshing(false);
     }
   };
   
@@ -241,6 +218,7 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
+      <Toaster position="top-center" />
       
       <div className="mt-20 pt-12 pb-16 flex flex-col items-center justify-center bg-gradient-to-b from-secondary/50 to-background border-b border-border">
         <div className="text-center mb-10 max-w-3xl mx-auto px-4">
@@ -253,9 +231,10 @@ const Index = () => {
           </p>
           <button 
             onClick={handleRefreshServers}
-            className="mt-4 inline-flex items-center px-4 py-2 rounded-md bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium transition-colors"
+            disabled={refreshing}
+            className="mt-4 inline-flex items-center px-4 py-2 rounded-md bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"
           >
-            Refresh GitHub Data
+            {refreshing ? "Refreshing..." : "Refresh GitHub Data"}
           </button>
         </div>
         
@@ -271,7 +250,7 @@ const Index = () => {
             Array.from({ length: 6 }).map((_, index) => (
               <div key={index} className="h-[320px] rounded-xl bg-secondary/30 animate-pulse"></div>
             ))
-          ) : filteredServers.length > 0 ? (
+          ) : servers.length > 0 ? (
             filteredServers.map(server => (
               <div key={server.id} className="animate-slide-in">
                 <ServerCard server={server} />
@@ -284,16 +263,14 @@ const Index = () => {
               </div>
               <h3 className="text-lg font-medium mb-2">No servers found</h3>
               <p className="text-muted-foreground mb-4">
-                Try adjusting your search or filter criteria to find what you're looking for.
+                Try refreshing the GitHub data or adjusting your search criteria.
               </p>
               <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setActiveFilters({});
-                }}
-                className="text-sm font-medium text-primary hover:underline"
+                onClick={handleRefreshServers}
+                disabled={refreshing}
+                className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
               >
-                Clear all filters
+                {refreshing ? "Refreshing..." : "Refresh GitHub Data"}
               </button>
             </div>
           )}

@@ -114,16 +114,16 @@ async function fetchRepoData(repo: {
       stars: data.stargazers_count || 0,
       forks: data.forks_count || 0,
       language: data.language || repo.language,
-      programmingLanguage: mapLanguageToEnum(data.language || repo.language),
+      programming_language: mapLanguageToEnum(data.language || repo.language),
       tags: tags.slice(0, 6),
       owner: repo.owner,
-      lastUpdated: new Date(data.updated_at || new Date()).toISOString(),
+      last_updated: new Date(data.updated_at || new Date()).toISOString(),
       category: repo.categories[0] || "general",
       categories: repo.categories,
       implementation: "community",
-      deploymentType,
+      deployment_type: deploymentType,
       os,
-      repoUrl: data.html_url,
+      repo_url: data.html_url,
       status,
     };
     
@@ -139,16 +139,16 @@ async function fetchRepoData(repo: {
       stars: 0,
       forks: 0,
       language: repo.language,
-      programmingLanguage: mapLanguageToEnum(repo.language),
+      programming_language: mapLanguageToEnum(repo.language),
       tags: ['mcp', 'server', ...repo.categories],
       owner: repo.owner,
-      lastUpdated: new Date().toISOString(),
+      last_updated: new Date().toISOString(),
       category: repo.categories[0] || "general",
       categories: repo.categories,
       implementation: "community",
-      deploymentType: "local" as "local" | "cloud" | "both",
+      deployment_type: "local" as "local" | "cloud" | "both",
       os: ["macos", "windows", "linux"],
-      repoUrl: `https://github.com/${repo.owner}/${repo.name}`,
+      repo_url: `https://github.com/${repo.owner}/${repo.name}`,
       status: "stable" as "stable" | "experimental",
     };
   }
@@ -173,6 +173,7 @@ serve(async (req) => {
         .upsert(results, { onConflict: 'id' });
       
       if (error) {
+        console.error(`Error storing data in Supabase: ${error.message}`);
         throw new Error(`Error storing data in Supabase: ${error.message}`);
       }
       
