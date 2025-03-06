@@ -66,6 +66,66 @@ export type Database = {
         }
         Relationships: []
       }
+      mock_servers: {
+        Row: {
+          categories: string[] | null
+          category: string | null
+          deployment_type: string | null
+          description: string | null
+          forks: number | null
+          id: string
+          implementation: string | null
+          language: string | null
+          last_updated: string | null
+          name: string
+          os: string[] | null
+          owner: string | null
+          programming_language: string | null
+          repo_url: string | null
+          stars: number | null
+          status: string | null
+          tags: string[] | null
+        }
+        Insert: {
+          categories?: string[] | null
+          category?: string | null
+          deployment_type?: string | null
+          description?: string | null
+          forks?: number | null
+          id: string
+          implementation?: string | null
+          language?: string | null
+          last_updated?: string | null
+          name: string
+          os?: string[] | null
+          owner?: string | null
+          programming_language?: string | null
+          repo_url?: string | null
+          stars?: number | null
+          status?: string | null
+          tags?: string[] | null
+        }
+        Update: {
+          categories?: string[] | null
+          category?: string | null
+          deployment_type?: string | null
+          description?: string | null
+          forks?: number | null
+          id?: string
+          implementation?: string | null
+          language?: string | null
+          last_updated?: string | null
+          name?: string
+          os?: string[] | null
+          owner?: string | null
+          programming_language?: string | null
+          repo_url?: string | null
+          stars?: number | null
+          status?: string | null
+          tags?: string[] | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
