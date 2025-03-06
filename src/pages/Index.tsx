@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Container } from "@/components/ui/container";
@@ -248,7 +249,7 @@ const Index = () => {
           </div>
           <h1 className="text-4xl sm:text-5xl font-mono font-semibold mb-4">MCP Server Directory</h1>
           <p className="text-lg text-muted-foreground">
-            Find, compare and deploy MCP servers for your AI infrastructure
+            Find, compare and deploy MCP servers for browser automation and integrations
           </p>
           <button 
             onClick={handleRefreshServers}
