@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.22.0";
 
@@ -17,9 +16,6 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 // List of MCP server repositories to track
 const repos = [
   { owner: "blackwhite084", name: "playwright-plus-python-mcp", language: "python", categories: ["browser-automation"], description: "An MCP python server using Playwright for browser automation, more suitable for llm" },
-  { owner: "executeautomation", name: "playwright-mcp-server", language: "typescript", categories: ["browser-automation", "web-scraping"], description: "An MCP server using Playwright for browser automation and webscrapping" },
-  { owner: "automatalabs", name: "mcp-server-playwright", language: "typescript", categories: ["browser-automation"], description: "An MCP server for browser automation using Playwright" },
-  { owner: "modelcontextprotocol", name: "server-puppeteer", language: "typescript", categories: ["browser-automation", "web-scraping"], description: "Browser automation for web scraping and interaction" },
   { owner: "kimtaeyoon83", name: "mcp-server-youtube-transcript", language: "typescript", categories: ["media", "youtube"], description: "Fetch YouTube subtitles and transcripts for AI analysis" },
   { owner: "recursechat", name: "mcp-server-apple-shortcuts", language: "typescript", categories: ["integration", "apple"], description: "An MCP Server Integration with Apple Shortcuts" },
   { owner: "kimtth", name: "mcp-aoai-web-browsing", language: "python", categories: ["browser-automation", "azure"], description: "A minimal server/client MCP implementation using Azure OpenAI and Playwright" },
