@@ -13,6 +13,14 @@ export interface ServerData {
   owner: string;
   lastUpdated: string;
   category: string;
+  // New fields
+  implementation: "official" | "community";
+  deploymentType: "cloud" | "local" | "both";
+  os?: ("macos" | "windows" | "linux")[];
+  repoUrl: string;
+  status: "stable" | "experimental";
+  categories: string[];
+  programmingLanguage: "typescript" | "python" | "go" | "rust" | "csharp" | "java" | "other";
 }
 
 interface ServerCardProps {
@@ -20,6 +28,9 @@ interface ServerCardProps {
 }
 
 export function ServerCard({ server }: ServerCardProps) {
+  // Get language display info
+  const languageInfo = getLanguageInfo(server.programmingLanguage);
+
   return (
     <Link
       to={`/server/${server.id}`}
@@ -53,12 +64,31 @@ export function ServerCard({ server }: ServerCardProps) {
             {server.description}
           </p>
           
+          <div className="flex flex-wrap gap-2 mb-3">
+            {server.implementation === "official" && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                Official
+              </span>
+            )}
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium flex items-center" 
+              style={{ backgroundColor: languageInfo.bgColor, color: languageInfo.textColor }}>
+              {languageInfo.icon}
+              <span className="ml-1">{languageInfo.name}</span>
+            </span>
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              {server.deploymentType === "both" ? "Cloud/Local" : server.deploymentType}
+            </span>
+          </div>
+          
           <div className="flex flex-wrap gap-2 mb-4">
-            {server.tags.map(tag => (
+            {server.tags.slice(0, 3).map(tag => (
               <span key={tag} className="code-badge">
                 {tag}
               </span>
             ))}
+            {server.tags.length > 3 && (
+              <span className="code-badge">+{server.tags.length - 3}</span>
+            )}
           </div>
         </div>
         
@@ -75,3 +105,24 @@ export function ServerCard({ server }: ServerCardProps) {
     </Link>
   );
 }
+
+// Helper function to get language display information
+function getLanguageInfo(language: ServerData["programmingLanguage"]) {
+  switch (language) {
+    case "typescript":
+      return { name: "TypeScript", bgColor: "#3178c6", textColor: "#fff", icon: "📇" };
+    case "python":
+      return { name: "Python", bgColor: "#3776AB", textColor: "#fff", icon: "🐍" };
+    case "go":
+      return { name: "Go", bgColor: "#00ADD8", textColor: "#fff", icon: "🏎️" };
+    case "rust":
+      return { name: "Rust", bgColor: "#DEA584", textColor: "#000", icon: "🦀" };
+    case "csharp":
+      return { name: "C#", bgColor: "#178600", textColor: "#fff", icon: "#️⃣" };
+    case "java":
+      return { name: "Java", bgColor: "#B07219", textColor: "#fff", icon: "☕" };
+    default:
+      return { name: "Other", bgColor: "#6e6e6e", textColor: "#fff", icon: "🧩" };
+  }
+}
+

@@ -67,71 +67,73 @@ export function FilterBar({ categories, onFilter }: FilterBarProps) {
         )}
       </div>
       
-      {categories.map((category) => (
-        <div key={category.name} className="relative">
-          <button
-            type="button"
-            className={cn(
-              "flex items-center space-x-1 rounded-lg border px-3 py-1.5 text-sm transition-colors",
-              openCategory === category.name
-                ? "border-primary/50 bg-primary/5"
-                : "border-border bg-card hover:bg-secondary",
-              activeFilters[category.name]?.length
-                ? "font-medium text-primary"
-                : "font-normal text-foreground"
-            )}
-            onClick={() => toggleCategory(category.name)}
-          >
-            <span>{category.name}</span>
-            {activeFilters[category.name]?.length > 0 && (
-              <span className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
-                {activeFilters[category.name]?.length}
-              </span>
-            )}
-            {openCategory === category.name ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </button>
-          
-          {openCategory === category.name && (
-            <div className="absolute z-10 mt-2 min-w-[200px] rounded-lg border border-border bg-card p-2 shadow-lg animate-scale-in">
-              <div className="space-y-1 py-1">
-                {category.options.map((option) => (
+      <div className="flex flex-wrap gap-2">
+        {categories.map((category) => (
+          <div key={category.name} className="relative">
+            <button
+              type="button"
+              className={cn(
+                "flex items-center space-x-1 rounded-lg border px-3 py-1.5 text-sm transition-colors",
+                openCategory === category.name
+                  ? "border-primary/50 bg-primary/5"
+                  : "border-border bg-card hover:bg-secondary",
+                activeFilters[category.name]?.length
+                  ? "font-medium text-primary"
+                  : "font-normal text-foreground"
+              )}
+              onClick={() => toggleCategory(category.name)}
+            >
+              <span>{category.name}</span>
+              {activeFilters[category.name]?.length > 0 && (
+                <span className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                  {activeFilters[category.name]?.length}
+                </span>
+              )}
+              {openCategory === category.name ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </button>
+            
+            {openCategory === category.name && (
+              <div className="absolute z-10 mt-2 min-w-[240px] max-h-[300px] overflow-y-auto rounded-lg border border-border bg-card p-2 shadow-lg animate-scale-in">
+                <div className="space-y-1 py-1">
+                  {category.options.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      className="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-secondary"
+                      onClick={() => toggleFilter(category.name, option)}
+                    >
+                      <span>{option}</span>
+                      {activeFilters[category.name]?.includes(option) ? (
+                        <Check className="h-4 w-4 text-primary" />
+                      ) : null}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
                   <button
-                    key={option}
                     type="button"
-                    className="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-secondary"
-                    onClick={() => toggleFilter(category.name, option)}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                    onClick={handleClearFilters}
                   >
-                    <span>{option}</span>
-                    {activeFilters[category.name]?.includes(option) ? (
-                      <Check className="h-4 w-4 text-primary" />
-                    ) : null}
+                    Clear all
                   </button>
-                ))}
+                  <button
+                    type="button"
+                    className="rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                    onClick={handleApplyFilters}
+                  >
+                    Apply filters
+                  </button>
+                </div>
               </div>
-              <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-                <button
-                  type="button"
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                  onClick={handleClearFilters}
-                >
-                  Clear all
-                </button>
-                <button
-                  type="button"
-                  className="rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90"
-                  onClick={handleApplyFilters}
-                >
-                  Apply filters
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      ))}
+            )}
+          </div>
+        ))}
+      </div>
       
       {getActiveFilterCount() > 0 && (
         <button

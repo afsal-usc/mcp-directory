@@ -23,7 +23,8 @@ const Index = () => {
     // Search filter
     if (searchQuery && !server.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
         !server.description.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !server.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))) {
+        !server.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) &&
+        !server.categories.some(category => category.toLowerCase().includes(searchQuery.toLowerCase()))) {
       return false;
     }
     
@@ -31,22 +32,75 @@ const Index = () => {
     for (const [category, selectedOptions] of Object.entries(activeFilters)) {
       if (selectedOptions.length === 0) continue;
       
-      if (category === "Language") {
-        if (!selectedOptions.includes(server.language)) return false;
+      if (category === "Programming Language") {
+        const languageMap: Record<string, ServerData["programmingLanguage"]> = {
+          "TypeScript": "typescript",
+          "Python": "python",
+          "Go": "go",
+          "Rust": "rust",
+          "C#": "csharp",
+          "Java": "java"
+        };
+        
+        const matchedLanguages = selectedOptions.map(opt => languageMap[opt] || "other");
+        if (!matchedLanguages.includes(server.programmingLanguage)) return false;
       }
       
-      if (category === "Features") {
-        if (!selectedOptions.some(option => server.tags.includes(option.toLowerCase()))) return false;
+      if (category === "Deployment") {
+        const deploymentMap: Record<string, ServerData["deploymentType"]> = {
+          "Cloud": "cloud",
+          "Local": "local",
+          "Both": "both"
+        };
+        
+        const matchedDeployments = selectedOptions.map(opt => deploymentMap[opt]);
+        if (!matchedDeployments.includes(server.deploymentType)) return false;
+      }
+      
+      if (category === "Implementation") {
+        const impMap: Record<string, ServerData["implementation"]> = {
+          "Official": "official",
+          "Community": "community"
+        };
+        
+        const matchedImplementations = selectedOptions.map(opt => impMap[opt]);
+        if (!matchedImplementations.includes(server.implementation)) return false;
+      }
+      
+      if (category === "Status") {
+        const statusMap: Record<string, ServerData["status"]> = {
+          "Stable": "stable",
+          "Experimental": "experimental"
+        };
+        
+        const matchedStatuses = selectedOptions.map(opt => statusMap[opt]);
+        if (!matchedStatuses.includes(server.status)) return false;
       }
       
       if (category === "Category") {
-        if (!selectedOptions.includes(server.category)) return false;
+        if (!selectedOptions.some(option => server.categories.includes(option))) return false;
+      }
+      
+      if (category === "Operating System") {
+        if (!server.os) return false;
+        
+        const osMap: Record<string, "macos" | "windows" | "linux"> = {
+          "macOS": "macos",
+          "Windows": "windows",
+          "Linux": "linux"
+        };
+        
+        const matchedOS = selectedOptions.map(opt => osMap[opt]);
+        if (!matchedOS.some(os => server.os?.includes(os))) return false;
       }
       
       // Simplified last updated filter implementation
       if (category === "Last Updated") {
-        // This is simplified, in a real app you would check actual timestamps
+        // This is simplified; in a real app you would check actual timestamps
         if (selectedOptions.includes("This week") && !server.lastUpdated.includes("day") && !server.lastUpdated.includes("week")) {
+          return false;
+        }
+        if (selectedOptions.includes("This month") && server.lastUpdated.includes("month")) {
           return false;
         }
       }
@@ -124,20 +178,19 @@ const Index = () => {
             <div>
               <h3 className="font-medium mb-4">Resources</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Documentation</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Guides</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">API Reference</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Examples</a></li>
+                <li><a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">MCP Protocol</a></li>
+                <li><a href="https://modelcontextprotocol.io/llms-full.txt" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">LLM Instructions</a></li>
+                <li><a href="https://github.com/punkpeye/awesome-mcp-servers" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">Awesome MCP Servers</a></li>
+                <li><a href="https://github.com/punkpeye/awesome-mcp-clients" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">Awesome MCP Clients</a></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="font-medium mb-4">Company</h3>
+              <h3 className="font-medium mb-4">Community</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">About</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Blog</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Careers</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Contact</a></li>
+                <li><a href="https://glama.ai/mcp/discord" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">Discord</a></li>
+                <li><a href="https://www.reddit.com/r/mcp" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">Reddit</a></li>
+                <li><a href="https://github.com/modelcontextprotocol" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">GitHub</a></li>
               </ul>
             </div>
             
@@ -158,19 +211,19 @@ const Index = () => {
             </p>
             
             <div className="flex space-x-4 mt-4 md:mt-0">
-              <a href="#" className="text-muted-foreground hover:text-foreground">
+              <a href="https://github.com/modelcontextprotocol" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd"></path>
                 </svg>
               </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground">
+              <a href="https://discord.gg/modelcontextprotocol" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
+                  <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3857-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/>
                 </svg>
               </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground">
+              <a href="https://www.reddit.com/r/mcp" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fillRule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c5.51 0 10-4.48 10-10S17.51 2 12 2zm6.605 4.61a8.502 8.502 0 011.93 5.314c-.281-.054-3.101-.629-5.943-.271-.065-.141-.12-.293-.184-.445a25.416 25.416 0 00-.564-1.236c3.145-1.28 4.577-3.124 4.761-3.362zM12 3.475c2.17 0 4.154.813 5.662 2.148-.152.216-1.443 1.941-4.48 3.08-1.399-2.57-2.95-4.675-3.189-5A8.687 8.687 0 0112 3.475zm-3.633.803a53.896 53.896 0 013.167 4.935c-3.992 1.063-7.517 1.04-7.896 1.04a8.581 8.581 0 014.729-5.975zM3.453 12.01v-.26c.37.01 4.512.065 8.775-1.215.25.477.477.965.694 1.453-.109.033-.228.065-.336.098-4.404 1.42-6.747 5.303-6.942 5.629a8.522 8.522 0 01-2.19-5.705zM12 20.547a8.482 8.482 0 01-5.239-1.8c.152-.315 1.888-3.656 6.703-5.337.022-.01.033-.01.054-.022a35.318 35.318 0 011.823 6.475 8.4 8.4 0 01-3.341.684zm4.761-1.465c-.086-.52-.542-3.015-1.659-6.084 2.679-.423 5.022.271 5.314.369a8.468 8.468 0 01-3.655 5.715z" clipRule="evenodd"></path>
+                  <path d="M12 22.25c-5.523 0-10-4.477-10-10s4.477-10 10-10 10 4.477 10 10-4.477 10-10 10zm6.5-10c0-.828-.671-1.5-1.5-1.5-.403 0-.768.156-1.05.418-1.028-.693-2.41-1.13-3.95-1.184l.675-3.21 2.226.47c.043.783.689 1.406 1.474 1.406.828 0 1.5-.672 1.5-1.5 0-.829-.672-1.5-1.5-1.5-.587 0-1.092.343-1.332.836l-2.474-.52a.375.375 0 0 0-.446.287l-.75 3.57c-1.573.031-2.99.475-4.04 1.18A1.485 1.485 0 0 0 5.5 10.75a1.49 1.49 0 0 0 1.5 1.5c.223 0 .433-.049.622-.134a3.22 3.22 0 0 0-.122.984c0 2.485 2.917 4.5 6.5 4.5s6.5-2.015 6.5-4.5c0-.337-.043-.662-.122-.984.19.085.399.134.622.134a1.49 1.49 0 0 0 1.5-1.5c0-.828-.671-1.5-1.5-1.5zm-10 1.5c-.828 0-1.5-.671-1.5-1.5 0-.828.672-1.5 1.5-1.5s1.5.672 1.5 1.5c0 .829-.672 1.5-1.5 1.5zm5.5 4c-1.667 0-3.333-.5-4.667-1.5a.5.5 0 0 1 .667-.75c1 .75 2.333 1.25 4 1.25 1.667 0 3-.5 4-1.25a.5.5 0 0 1 .667.75c-1.333 1-3 1.5-4.667 1.5zm2.5-4c-.828 0-1.5-.671-1.5-1.5 0-.828.672-1.5 1.5-1.5s1.5.672 1.5 1.5c0 .829-.672 1.5-1.5 1.5z"/>
                 </svg>
               </a>
             </div>
