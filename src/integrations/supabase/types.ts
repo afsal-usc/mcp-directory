@@ -70,59 +70,86 @@ export type Database = {
         Row: {
           categories: string[] | null
           category: string | null
+          contributors_count: number | null
           deployment_type: string | null
           description: string | null
           forks: number | null
+          homepage_url: string | null
           id: string
           implementation: string | null
+          issues_count: number | null
           language: string | null
           last_updated: string | null
+          license: string | null
           name: string
           os: string[] | null
           owner: string | null
+          package_json: Json | null
           programming_language: string | null
+          readme: string | null
+          repo_size: number | null
           repo_url: string | null
           stars: number | null
           status: string | null
           tags: string[] | null
+          version: string | null
+          watchers: number | null
         }
         Insert: {
           categories?: string[] | null
           category?: string | null
+          contributors_count?: number | null
           deployment_type?: string | null
           description?: string | null
           forks?: number | null
+          homepage_url?: string | null
           id: string
           implementation?: string | null
+          issues_count?: number | null
           language?: string | null
           last_updated?: string | null
+          license?: string | null
           name: string
           os?: string[] | null
           owner?: string | null
+          package_json?: Json | null
           programming_language?: string | null
+          readme?: string | null
+          repo_size?: number | null
           repo_url?: string | null
           stars?: number | null
           status?: string | null
           tags?: string[] | null
+          version?: string | null
+          watchers?: number | null
         }
         Update: {
           categories?: string[] | null
           category?: string | null
+          contributors_count?: number | null
           deployment_type?: string | null
           description?: string | null
           forks?: number | null
+          homepage_url?: string | null
           id?: string
           implementation?: string | null
+          issues_count?: number | null
           language?: string | null
           last_updated?: string | null
+          license?: string | null
           name?: string
           os?: string[] | null
           owner?: string | null
+          package_json?: Json | null
           programming_language?: string | null
+          readme?: string | null
+          repo_size?: number | null
           repo_url?: string | null
           stars?: number | null
           status?: string | null
           tags?: string[] | null
+          version?: string | null
+          watchers?: number | null
         }
         Relationships: []
       }

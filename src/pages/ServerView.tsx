@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
@@ -73,7 +72,7 @@ const ServerView = () => {
           homepageUrl: data.homepage_url || null,
           repoSize: data.repo_size || 0,
           watchers: data.watchers || 0,
-          packageJson: data.package_json ? JSON.parse(data.package_json) : null
+          packageJson: data.package_json || null
         };
         
         console.log('Fetched server data:', serverData);
