@@ -125,4 +125,3 @@ function getLanguageInfo(language: ServerData["programmingLanguage"]) {
       return { name: "Other", bgColor: "#6e6e6e", textColor: "#fff", icon: "🧩" };
   }
 }
-
