@@ -61,6 +61,90 @@ function getOsCompatibility(repo: string): string[] {
   return os;
 }
 
+// Extract license information from GitHub API response
+function extractLicense(data: any): string {
+  if (!data.license) return "Not specified";
+  return data.license.spdx_id || data.license.name || "Not specified";
+}
+
+// Function to fetch the README content
+async function fetchReadme(owner: string, repo: string): Promise<string> {
+  try {
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, {
+      headers: {
+        Authorization: `token ${githubToken}`,
+        Accept: 'application/vnd.github.v3.raw',
+      },
+    });
+    
+    if (!response.ok) {
+      console.log(`README not found or error for ${owner}/${repo}: ${response.status}`);
+      return "";
+    }
+    
+    return await response.text();
+  } catch (error) {
+    console.error(`Error fetching README for ${owner}/${repo}:`, error);
+    return "";
+  }
+}
+
+// Function to fetch contributors count
+async function fetchContributorsCount(owner: string, repo: string): Promise<number> {
+  try {
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contributors?per_page=1&anon=true`, {
+      headers: {
+        Authorization: `token ${githubToken}`,
+        Accept: 'application/vnd.github.v3+json',
+      },
+    });
+    
+    if (!response.ok) {
+      console.log(`Contributors not found or error for ${owner}/${repo}: ${response.status}`);
+      return 0;
+    }
+    
+    // Get total count from Link header
+    const linkHeader = response.headers.get('Link');
+    if (linkHeader && linkHeader.includes('rel="last"')) {
+      const match = linkHeader.match(/&page=(\d+)>; rel="last"/);
+      if (match && match[1]) {
+        return parseInt(match[1], 10);
+      }
+    }
+    
+    // If no Link header with last page, count the contributors in the response
+    const contributors = await response.json();
+    return Array.isArray(contributors) ? contributors.length : 0;
+  } catch (error) {
+    console.error(`Error fetching contributors for ${owner}/${repo}:`, error);
+    return 0;
+  }
+}
+
+// Function to fetch package.json if available
+async function fetchPackageJson(owner: string, repo: string): Promise<any> {
+  try {
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/package.json`, {
+      headers: {
+        Authorization: `token ${githubToken}`,
+        Accept: 'application/vnd.github.v3.raw',
+      },
+    });
+    
+    if (!response.ok) {
+      console.log(`package.json not found for ${owner}/${repo}`);
+      return null;
+    }
+    
+    const content = await response.text();
+    return JSON.parse(content);
+  } catch (error) {
+    console.log(`Error or no package.json for ${owner}/${repo}`);
+    return null;
+  }
+}
+
 // Main function to fetch repository data
 async function fetchRepoData(repo: { 
   owner: string; 
@@ -72,6 +156,7 @@ async function fetchRepoData(repo: {
   console.log(`Fetching data for ${repo.owner}/${repo.name}`);
   
   try {
+    // Fetch basic repository information
     const response = await fetch(`https://api.github.com/repos/${repo.owner}/${repo.name}`, {
       headers: {
         Authorization: `token ${githubToken}`,
@@ -84,6 +169,16 @@ async function fetchRepoData(repo: {
     }
     
     const data = await response.json();
+    
+    // Fetch additional information in parallel
+    const [readme, contributorsCount, packageJson] = await Promise.all([
+      fetchReadme(repo.owner, repo.name),
+      fetchContributorsCount(repo.owner, repo.name),
+      fetchPackageJson(repo.owner, repo.name)
+    ]);
+    
+    // Extract version from package.json if available
+    const version = packageJson ? packageJson.version || "N/A" : "N/A";
     
     // Determine deployment type based on repo description
     const fullDescription = `${repo.name} ${repo.description}`;
@@ -125,6 +220,15 @@ async function fetchRepoData(repo: {
       os,
       repo_url: data.html_url,
       status,
+      readme: readme,
+      issues_count: data.open_issues_count || 0,
+      contributors_count: contributorsCount,
+      license: extractLicense(data),
+      version: version,
+      homepage_url: data.homepage || null,
+      repo_size: data.size || 0,
+      watchers: data.watchers_count || 0,
+      package_json: packageJson ? JSON.stringify(packageJson) : null
     };
     
     return serverData;
@@ -150,6 +254,15 @@ async function fetchRepoData(repo: {
       os: ["macos", "windows", "linux"],
       repo_url: `https://github.com/${repo.owner}/${repo.name}`,
       status: "stable" as "stable" | "experimental",
+      readme: "",
+      issues_count: 0,
+      contributors_count: 0,
+      license: "Not specified",
+      version: "N/A",
+      homepage_url: null,
+      repo_size: 0,
+      watchers: 0,
+      package_json: null
     };
   }
 }

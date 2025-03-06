@@ -1,0 +1,12 @@
+
+-- Add additional columns to the mock_servers table
+ALTER TABLE public.mock_servers 
+  ADD COLUMN IF NOT EXISTS readme TEXT,
+  ADD COLUMN IF NOT EXISTS issues_count INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS contributors_count INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS license TEXT,
+  ADD COLUMN IF NOT EXISTS version TEXT,
+  ADD COLUMN IF NOT EXISTS homepage_url TEXT,
+  ADD COLUMN IF NOT EXISTS repo_size INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS watchers INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS package_json JSONB;

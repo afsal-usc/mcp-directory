@@ -1,14 +1,17 @@
 
-import { ArrowLeft, Star, GitFork, ExternalLink, Download, BookOpen, Code, Tag, Calendar, Cloud, Home, Globe, Server } from "lucide-react";
+import { ArrowLeft, Star, GitFork, ExternalLink, Download, BookOpen, Code, Tag, Calendar, Cloud, Home, Globe, Server, Users, AlertCircle, Scale, FileCode, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ServerData } from "./ServerCard";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ReactMarkdown from "react-markdown";
 
 interface ServerDetailProps {
   server: ServerData;
+  readmeContent?: string | null;
 }
 
-export function ServerDetail({ server }: ServerDetailProps) {
+export function ServerDetail({ server, readmeContent }: ServerDetailProps) {
   // Get language display info
   const languageInfo = getLanguageInfo(server.programmingLanguage);
   
@@ -49,6 +52,15 @@ export function ServerDetail({ server }: ServerDetailProps) {
     );
   };
 
+  // Format file size from bytes to KB/MB
+  const formatFileSize = (bytes?: number) => {
+    if (!bytes) return "Unknown";
+    
+    if (bytes < 1024) return `${bytes} B`;
+    else if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    else return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   return (
     <div className="animate-fade-in">
       <div className="mb-8">
@@ -77,6 +89,11 @@ export function ServerDetail({ server }: ServerDetailProps) {
                         Official
                       </span>
                     )}
+                    {server.version && server.version !== "N/A" && (
+                      <span className="ml-3 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        v{server.version}
+                      </span>
+                    )}
                   </div>
                   <p className="text-muted-foreground">by {server.owner}</p>
                 </div>
@@ -95,6 +112,12 @@ export function ServerDetail({ server }: ServerDetailProps) {
                 <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                   {server.status.charAt(0).toUpperCase() + server.status.slice(1)}
                 </span>
+                {server.license && (
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 flex items-center">
+                    <Scale className="w-3 h-3 mr-1" />
+                    {server.license}
+                  </span>
+                )}
               </div>
               
               {getOSBadges(server.os)}
@@ -142,6 +165,30 @@ export function ServerDetail({ server }: ServerDetailProps) {
               
               <div className="flex items-center justify-between p-3 rounded-lg bg-secondary text-sm">
                 <div className="flex items-center">
+                  <Eye className="w-4 h-4 mr-2" />
+                  <span>Watchers</span>
+                </div>
+                <span className="font-mono font-medium">{server.watchers || 0}</span>
+              </div>
+              
+              <div className="flex items-center justify-between p-3 rounded-lg bg-secondary text-sm">
+                <div className="flex items-center">
+                  <AlertCircle className="w-4 h-4 mr-2 text-orange-500" />
+                  <span>Issues</span>
+                </div>
+                <span className="font-mono font-medium">{server.issuesCount || 0}</span>
+              </div>
+              
+              <div className="flex items-center justify-between p-3 rounded-lg bg-secondary text-sm">
+                <div className="flex items-center">
+                  <Users className="w-4 h-4 mr-2 text-indigo-500" />
+                  <span>Contributors</span>
+                </div>
+                <span className="font-mono font-medium">{server.contributorsCount || 0}</span>
+              </div>
+              
+              <div className="flex items-center justify-between p-3 rounded-lg bg-secondary text-sm">
+                <div className="flex items-center">
                   <Code className="w-4 h-4 mr-2" />
                   <span>Language</span>
                 </div>
@@ -150,18 +197,18 @@ export function ServerDetail({ server }: ServerDetailProps) {
               
               <div className="flex items-center justify-between p-3 rounded-lg bg-secondary text-sm">
                 <div className="flex items-center">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  <span>Updated</span>
+                  <FileCode className="w-4 h-4 mr-2 text-green-500" />
+                  <span>Size</span>
                 </div>
-                <span className="font-mono font-medium">{server.lastUpdated}</span>
+                <span className="font-mono font-medium">{formatFileSize(server.repoSize)}</span>
               </div>
               
               <div className="flex items-center justify-between p-3 rounded-lg bg-secondary text-sm">
                 <div className="flex items-center">
-                  <Server className="w-4 h-4 mr-2" />
-                  <span>Type</span>
+                  <Calendar className="w-4 h-4 mr-2" />
+                  <span>Updated</span>
                 </div>
-                <span className="font-mono font-medium">{formatCategories(server.categories.slice(0, 1))}</span>
+                <span className="font-mono font-medium">{server.lastUpdated}</span>
               </div>
             </div>
           </div>
@@ -185,25 +232,59 @@ export function ServerDetail({ server }: ServerDetailProps) {
               Documentation
             </Button>
             
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => window.open(server.repoUrl, "_blank")}
-            >
-              <ExternalLink className="mr-2 h-4 w-4" />
-              GitHub
-            </Button>
+            {server.homepageUrl ? (
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => window.open(server.homepageUrl!, "_blank")}
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Homepage
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => window.open(server.repoUrl, "_blank")}
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                GitHub
+              </Button>
+            )}
           </div>
           
-          <div className="border-t border-border pt-8">
-            <h2 className="text-xl font-mono font-medium mb-4">Installation</h2>
-            <div className="bg-secondary rounded-lg p-4 font-mono text-sm overflow-x-auto mb-6">
-              <pre>npm install {server.name}</pre>
-            </div>
+          <Tabs defaultValue="installation" className="border-t border-border pt-8">
+            <TabsList className="mb-6">
+              <TabsTrigger value="installation">Installation</TabsTrigger>
+              <TabsTrigger value="usage">Basic Usage</TabsTrigger>
+              {readmeContent && <TabsTrigger value="readme">README</TabsTrigger>}
+            </TabsList>
             
-            <h2 className="text-xl font-mono font-medium mb-4">Basic Usage</h2>
-            <div className="bg-secondary rounded-lg p-4 font-mono text-sm overflow-x-auto">
-              <pre>{`import { createMcpServer } from '${server.name}'
+            <TabsContent value="installation">
+              <h2 className="text-xl font-mono font-medium mb-4">Installation</h2>
+              <div className="bg-secondary rounded-lg p-4 font-mono text-sm overflow-x-auto mb-6">
+                <pre>npm install {server.name}</pre>
+              </div>
+              
+              {server.packageJson && server.packageJson.dependencies && (
+                <div className="mt-8">
+                  <h3 className="text-lg font-mono font-medium mb-4">Dependencies</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {Object.entries(server.packageJson.dependencies).map(([dep, ver]: [string, any]) => (
+                      <div key={dep} className="bg-secondary/50 rounded-lg p-3">
+                        <div className="font-mono text-sm">{dep}</div>
+                        <div className="text-xs text-muted-foreground">{ver}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="usage">
+              <h2 className="text-xl font-mono font-medium mb-4">Basic Usage</h2>
+              <div className="bg-secondary rounded-lg p-4 font-mono text-sm overflow-x-auto">
+                <pre>{`import { createMcpServer } from '${server.name}'
 
 const server = createMcpServer({
   port: 8000,
@@ -211,8 +292,17 @@ const server = createMcpServer({
 })
 
 server.start()`}</pre>
-            </div>
-          </div>
+              </div>
+            </TabsContent>
+            
+            {readmeContent && (
+              <TabsContent value="readme">
+                <div className="prose prose-slate dark:prose-invert max-w-none">
+                  <ReactMarkdown>{readmeContent}</ReactMarkdown>
+                </div>
+              </TabsContent>
+            )}
+          </Tabs>
         </div>
       </div>
     </div>

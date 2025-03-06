@@ -1,4 +1,3 @@
-
 import { Star, GitFork, ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -13,7 +12,6 @@ export interface ServerData {
   owner: string;
   lastUpdated: string;
   category: string;
-  // New fields
   implementation: "official" | "community";
   deploymentType: "cloud" | "local" | "both";
   os?: ("macos" | "windows" | "linux")[];
@@ -21,6 +19,14 @@ export interface ServerData {
   status: "stable" | "experimental";
   categories: string[];
   programmingLanguage: "typescript" | "python" | "go" | "rust" | "csharp" | "java" | "other";
+  issuesCount?: number;
+  contributorsCount?: number;
+  license?: string;
+  version?: string;
+  homepageUrl?: string | null;
+  repoSize?: number;
+  watchers?: number;
+  packageJson?: any;
 }
 
 interface ServerCardProps {

@@ -12,6 +12,7 @@ const ServerView = () => {
   const { id } = useParams<{ id: string }>();
   const [server, setServer] = useState<ServerData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [readmeContent, setReadmeContent] = useState<string | null>(null);
   
   useEffect(() => {
     const fetchServerData = async () => {
@@ -40,6 +41,11 @@ const ServerView = () => {
           return;
         }
         
+        // Store README content separately
+        if (data.readme) {
+          setReadmeContent(data.readme);
+        }
+        
         // Map Supabase data to ServerData format
         const serverData: ServerData = {
           id: data.id,
@@ -59,6 +65,15 @@ const ServerView = () => {
           status: data.status as "stable" | "experimental" || "stable",
           categories: data.categories || [data.category || "general"],
           programmingLanguage: data.programming_language as ServerData["programmingLanguage"] || "typescript",
+          // New fields
+          issuesCount: data.issues_count || 0,
+          contributorsCount: data.contributors_count || 0,
+          license: data.license || "Not specified",
+          version: data.version || "N/A",
+          homepageUrl: data.homepage_url || null,
+          repoSize: data.repo_size || 0,
+          watchers: data.watchers || 0,
+          packageJson: data.package_json ? JSON.parse(data.package_json) : null
         };
         
         console.log('Fetched server data:', serverData);
@@ -91,7 +106,7 @@ const ServerView = () => {
             </div>
           ) : server ? (
             <div className="py-12">
-              <ServerDetail server={server} />
+              <ServerDetail server={server} readmeContent={readmeContent} />
             </div>
           ) : (
             <div className="py-24 text-center">
